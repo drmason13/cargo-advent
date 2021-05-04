@@ -4,7 +4,10 @@
 
 use crate::date::{Advent, Day, Year};
 use anyhow::{anyhow, Result};
-use std::path::{Path, PathBuf};
+use std::{
+    convert::TryFrom,
+    path::{Path, PathBuf},
+};
 
 pub const HELP: &'static str = "\
 cargo-advent
@@ -31,30 +34,21 @@ OPTIONS:
 // TODO: --all-days option to download all (available) inputs for the year
 #[derive(Debug)]
 pub struct Args {
-    pub year: Year,
-    pub day: Day,
-    pub output: std::path::PathBuf,
-    pub credentials_path: std::path::PathBuf,
+    year: Option<u32>,
+    day: Option<u32>,
+    output: Option<std::path::PathBuf>,
+    credentials_path: Option<std::path::PathBuf>,
 }
 
 impl Args {
     pub fn parse_args(pargs: &mut pico_args::Arguments) -> Result<Args> {
-        let y: Option<u32> = pargs.opt_value_from_str(["-y", "--year"])?;
-        let d: Option<u32> = pargs.opt_value_from_str(["-d", "--day"])?;
-        let date = Advent::new(y, d)?;
-        let year = date.year();
-        let day = date.day();
+        let year: Option<u32> = pargs.opt_value_from_str(["-y", "--year"])?;
+        let day: Option<u32> = pargs.opt_value_from_str(["-d", "--day"])?;
 
-        let credentials_path =
-            match pargs.opt_value_from_os_str("--credentials-path", Args::parse_path)? {
-                Some(x) => x,
-                None => Args::default_credentials_path()?,
-            };
+        // opt_value_from_os_str forces us to give a result even though we don't error
+        let credentials_path = pargs.opt_value_from_str("--credentials-path")?;
 
-        let output = match pargs.opt_value_from_os_str(["-o", "--output"], Args::parse_path)? {
-            Some(x) => x,
-            None => Args::default_output_path(year.inner(), day.inner())?,
-        };
+        let output = pargs.opt_value_from_str(["-o", "--output"])?;
 
         let args = Args {
             year,
@@ -65,28 +59,59 @@ impl Args {
 
         Ok(args)
     }
+}
 
-    pub fn default_credentials_path() -> Result<PathBuf> {
-        let dirs = directories::ProjectDirs::from("com.github", "drmason13", "cargo-advent");
-        let config_path = dirs
-            .ok_or(anyhow!(
-                "No valid home directory path could be retrieved from the operating system.",
-            ))?
-            .config_dir()
-            .join("session_token");
+pub struct CheckedArgs {
+    pub year: Year,
+    pub day: Day,
+    pub output: std::path::PathBuf,
+    pub credentials_path: std::path::PathBuf,
+}
 
-        Ok(config_path)
-    }
+pub fn default_credentials_path() -> Result<PathBuf> {
+    let dirs = directories::ProjectDirs::from("com.github", "drmason13", "cargo-advent");
+    let config_path = dirs
+        .ok_or(anyhow!(
+            "No valid home directory path could be retrieved from the operating system.",
+        ))?
+        .config_dir()
+        .join("session_token");
 
-    pub fn default_output_path(year: u32, day: u32) -> Result<PathBuf> {
-        let cache_path = Path::new("./input")
-            .join(&year.to_string())
-            .join(&format!("day{}.txt", day));
+    Ok(config_path)
+}
 
-        Ok(cache_path)
-    }
+pub fn default_output_path(year: u32, day: u32) -> PathBuf {
+    let cache_path = Path::new("./input")
+        .join(&year.to_string())
+        .join(&format!("day{}.txt", day));
 
-    fn parse_path(s: &std::ffi::OsStr) -> Result<std::path::PathBuf, &'static str> {
-        Ok(s.into())
+    cache_path
+}
+
+impl TryFrom<Args> for CheckedArgs {
+    type Error = anyhow::Error;
+
+    fn try_from(args: Args) -> Result<Self, Self::Error> {
+        // validate the day and year
+        let date = Advent::new(args.year, args.day)?;
+        let year = date.year();
+        let day = date.day();
+
+        let output = match args.output {
+            Some(x) => x,
+            None => default_output_path(year.inner(), day.inner()),
+        };
+
+        let credentials_path = match args.credentials_path {
+            Some(x) => x,
+            None => default_credentials_path()?,
+        };
+
+        Ok(CheckedArgs {
+            year,
+            day,
+            output,
+            credentials_path,
+        })
     }
 }

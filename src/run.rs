@@ -1,6 +1,7 @@
-use crate::args::{Args, HELP};
+use crate::args::{default_credentials_path, Args, CheckedArgs, HELP};
 use anyhow::{Context, Result};
 use std::{
+    convert::TryFrom,
     fs,
     path::{Path, PathBuf},
 };
@@ -17,7 +18,7 @@ pub fn entrypoint() -> Result<()> {
     if let Some(token) = pargs.opt_value_from_str("--set-credentials")? {
         let credentials_path = match pargs.opt_value_from_str("--credentials-path")? {
             Some(x) => x,
-            None => Args::default_credentials_path()?,
+            None => default_credentials_path()?,
         };
 
         return Ok(set_credentials(token, credentials_path)?);
@@ -27,7 +28,7 @@ pub fn entrypoint() -> Result<()> {
     if pargs.contains("--get-credentials") {
         let credentials_path = match pargs.opt_value_from_str("--credentials-path")? {
             Some(x) => x,
-            None => Args::default_credentials_path()?,
+            None => default_credentials_path()?,
         };
 
         return Ok(get_credentials(credentials_path)?);
@@ -35,7 +36,10 @@ pub fn entrypoint() -> Result<()> {
 
     let args = match Args::parse_args(&mut pargs) {
         Ok(v) => {
-            pargs.finish();
+            let remaining = pargs.finish();
+            if !remaining.is_empty() {
+                eprintln!("Warning: unused arguments left: {:?}.", remaining);
+            }
             v
         }
         Err(e) => {
@@ -44,17 +48,19 @@ pub fn entrypoint() -> Result<()> {
         }
     };
 
+    let args = CheckedArgs::try_from(args)?;
+
     Ok(run(args)?)
 }
 
 /// Main entrypoint, for downloading an Advent of Code input
 pub fn run(
-    Args {
+    CheckedArgs {
         year,
         day,
         output,
         credentials_path,
-    }: Args,
+    }: CheckedArgs,
 ) -> Result<()> {
     if !output.exists() {
         let session_cookie = read_session_cookie_from_store(credentials_path)?;

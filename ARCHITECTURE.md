@@ -17,14 +17,12 @@ binary ---calls--> lib (lib does everything)
 ## Code Map
 
 ### `run.rs`
-The entrypoint, this depends on args.rs to parse arguments.
+The entrypoint, this depends on args.rs to parse and validate arguments.
 
 ### `args.rs`
-Argument parsing happens in `args.rs` in the `Args` struct.
+Argument parsing and validation happens in `args.rs` in the `Args` and `CheckedArgs` structs respectively.
 
-It is a little bit cheeky and short-circuits argument parsing to call the lib early if certain "dead-end" arguments show up.
-
-`Args` depends on `date.rs` when parsing the defaults for --day and --year.
+`CheckedArgs` depends on `date.rs` when to infer / validate --day and --year.
 
 ### `date.rs`
 Types for validating year and day and whether there is an Advent of Code input available for thea given combination.
