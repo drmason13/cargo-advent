@@ -1,0 +1,13 @@
+[package]
+name = "cargo-advent"
+version = "0.1.0"
+authors = ["drmason13 <drmason13@users.noreply.github.com>"]
+edition = "2018"
+
+[dependencies]
+ureq = "2.1.1"
+pico-args = { version = "0.4.1", features = ["short-space-opt"] }
+directories = "3.0.2"
+chrono = "0.4.19"
+anyhow = "1.0"
+thiserror = "1.0.24"

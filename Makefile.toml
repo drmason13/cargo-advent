@@ -1,0 +1,44 @@
+[tasks.advent]
+alias = "aoc-flow"
+
+[tasks.aoc-flow]
+dependencies = [
+  "pre-aoc-flow",
+  "aoc-download-input-flow",
+  "aoc-run-solution-flow",
+  "post-aoc-flow",
+]
+
+[tasks.aoc-download-input]
+command = "cargo"
+args = ["advent"]
+
+[tasks.aoc-run-solution]
+command = "cargo"
+args = ["run"]
+
+[tasks.aoc-download-input-flow]
+dependencies = [
+  "pre-aoc-download-input",
+  "aoc-download-input",
+  "post-aoc-download-input",
+]
+
+[tasks.aoc-run-solution-flow]
+dependencies = [
+    "pre-aoc-run-solution",
+    "aoc-run-solution",
+    "post-aoc-run-solution"
+]
+
+[tasks.pre-aoc-flow]
+
+[tasks.post-aoc-flow]
+
+[tasks.pre-aoc-download-input]
+
+[tasks.post-aoc-download-input]
+
+[tasks.pre-aoc-run-solution]
+
+[tasks.post-aoc-run-solution]
