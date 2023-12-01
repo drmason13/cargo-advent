@@ -1,5 +1,5 @@
 //! All argument parsing for the binary
-//! It is discouraged to depened on the specifics of this behaviour as it is subject to frequent breaking changes
+//! It is discouraged to depend on the specifics of this behaviour as it is subject to frequent breaking changes
 //! The API is public to facilitate integration testing
 
 use crate::date::{Advent, Day, Year};
@@ -9,7 +9,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub const HELP: &'static str = "\
+pub const HELP: &str = "\
 cargo-advent
 
 A simple helper utility to download inputs for the yearly advent of code competition: https://adventofcode.com
@@ -82,8 +82,8 @@ pub fn default_credentials_path() -> Result<PathBuf> {
 
 pub fn default_output_path(year: u32, day: u32) -> PathBuf {
     let cache_path = Path::new("./input")
-        .join(&year.to_string())
-        .join(&format!("day{}.txt", day));
+        .join(year.to_string())
+        .join(format!("day{}.txt", day));
 
     cache_path
 }

@@ -21,7 +21,7 @@ pub fn entrypoint() -> Result<()> {
             None => default_credentials_path()?,
         };
 
-        return Ok(set_credentials(token, credentials_path)?);
+        return set_credentials(token, credentials_path);
     };
 
     // if --get-credentials is used, we can skip full argument parsing
@@ -31,13 +31,13 @@ pub fn entrypoint() -> Result<()> {
             None => default_credentials_path()?,
         };
 
-        return Ok(get_credentials(credentials_path)?);
+        return get_credentials(credentials_path);
     };
 
     let args = match Args::parse_args(&mut pargs) {
         Ok(v) => {
             let remaining = pargs.finish();
-            if !remaining.is_empty() {
+            if remaining.len() > 1 {
                 eprintln!("Warning: unused arguments left: {:?}.", remaining);
             }
             v
@@ -50,7 +50,7 @@ pub fn entrypoint() -> Result<()> {
 
     let args = CheckedArgs::try_from(args)?;
 
-    Ok(run(args)?)
+    run(args)
 }
 
 /// Main entrypoint, for downloading an Advent of Code input
@@ -118,7 +118,7 @@ fn write_nested(path: &Path, content: String) -> Result<()> {
     if let Some(parent_dir) = &path.parent() {
         std::fs::create_dir_all(parent_dir)?;
     }
-    Ok(fs::write(&path, content)?)
+    Ok(fs::write(path, content)?)
 }
 
 fn download_input(day: u32, year: u32, session_cookie: String) -> Result<String> {
@@ -128,15 +128,14 @@ fn download_input(day: u32, year: u32, session_cookie: String) -> Result<String>
         .set("Cookie", &session_cookie)
         .call()?
         .into_string()
-        .with_context(|| format!("Failed to download the input"))?;
+        .with_context(|| "Failed to download the input".to_string())?;
     Ok(content)
 }
 
 fn read_session_cookie_from_store(credentials_path: PathBuf) -> Result<String> {
-    Ok(fs::read_to_string(credentials_path).with_context(|| {
-        format!(
-            "Failed to read stored credentials\n\
-            Do you need to set credentials?",
-        )
-    })?)
+    fs::read_to_string(credentials_path).with_context(|| {
+        "Failed to read stored credentials\n\
+            Do you need to set credentials?"
+            .to_string()
+    })
 }

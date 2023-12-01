@@ -16,7 +16,7 @@ pub struct Day(u32);
 
 impl Day {
     fn new(n: u32) -> Result<Self, AdventError> {
-        if n < 1 || 25 < n {
+        if !(1..=25).contains(&n) {
             Err(AdventError::DayOutsideValidRange(n))
         } else {
             Ok(Day(n))
@@ -30,7 +30,7 @@ impl Day {
 
 impl Year {
     fn new(n: u32) -> Result<Self, AdventError> {
-        if n < 2015 || 9999 < n {
+        if !(2015..=9999).contains(&n) {
             Err(AdventError::YearOutsideValidRange(n))
         } else {
             Ok(Year(n))
@@ -54,12 +54,12 @@ impl Advent {
     pub fn new(y: Option<u32>, d: Option<u32>) -> Result<Self, AdventError> {
         let now = Local::now();
 
-        Ok(match (y, d) {
+        match (y, d) {
             (Some(y), Some(d)) => Advent::from_year_and_day(y, d, &now),
             (None, None) => Advent::now(&now),
             (Some(_y), None) => Err(AdventError::NeedDayGivenYear),
             (None, Some(d)) => Advent::from_day(d, &now),
-        }?)
+        }
     }
 
     fn now(now: &DateTime<Local>) -> Result<Self, AdventError> {

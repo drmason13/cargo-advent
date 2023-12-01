@@ -1,8 +1,8 @@
 [package]
 name = "cargo-advent"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["drmason13 <drmason13@users.noreply.github.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 ureq = "2.1.1"
